@@ -64,11 +64,20 @@ func main() {
 	}
 
 	tCh := make(chan *public.Tickers)
-	err = client.Ws.Public.Tickers(ws_public_requests.Tickers{
+	/* err = client.Ws.Public.Tickers(ws_public_requests.Tickers{
 		InstID: "BTC-USD-SWAP",
 	}, tCh)
 	if err != nil {
 		log.Fatalln("Instruments", err)
+	} */
+
+	cCh := make(chan *public.Candlesticks)
+	err = client.Ws.Business.Candlesticks(ws_public_requests.Candlesticks{
+		InstID:  "BTC-USD-SWAP",
+		Channel: okex.CandleStick1m,
+	}, cCh)
+	if err != nil {
+		log.Fatalln("Candlesticks", err)
 	}
 
 	// starting on listening
@@ -97,6 +106,11 @@ func main() {
 		case t := <-tCh:
 			log.Print("[Event]\tTicker")
 			for _, p := range t.Tickers {
+				log.Printf("\t%+v", p)
+			}
+		case c := <-cCh:
+			log.Print("[Event]\tCandlestick")
+			for _, p := range c.Candles {
 				log.Printf("\t%+v", p)
 			}
 		case b := <-client.Ws.DoneChan:
